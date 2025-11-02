@@ -1,26 +1,194 @@
 @import "tailwindcss";
 
+/* ---------- Theme ---------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --editor-bg: #111111;
+  --editor-text: #f8f8f2;
+  --review-bg: #1a1a1a;
+  --review-text: #eaeaea;
+  --accent: #3b82f6;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ---------- Base ---------- */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Fira Code", monospace, Arial, sans-serif;
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Layout ---------- */
+.container {
+  display: flex;
+  flex: 1;
+  height: 100vh;
+  padding: 1.5rem;
+  gap: 1.5rem;
+  box-sizing: border-box;
+}
+
+/* Each panel */
+.left,
+.right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--editor-bg);
+  border-radius: 14px;
+  padding: 1rem;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.right {
+  background: var(--review-bg);
+  color: var(--review-text);
+}
+
+/* ---------- Headers ---------- */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.section-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* ---------- Buttons ---------- */
+.clear-btn,
+.review-btn {
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.6rem 1.2rem;
+  transition: all 0.2s ease;
+}
+
+.clear-btn {
+  background: #ef4444;
+  color: #fff;
+}
+
+.clear-btn:hover {
+  background: #dc2626;
+}
+
+.review-btn {
+  background: var(--accent);
+  color: #fff;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.review-btn:hover {
+  background: #2563eb;
+}
+
+.review-btn.loading {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------- Code Editor ---------- */
+.code-wrapper {
+  flex: 1;
+  background: var(--editor-bg);
+  color: var(--editor-text);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-scroll {
+  flex: 1;
+  overflow-y: auto;
+  border-radius: 8px;
+  scrollbar-width: thin;
+}
+
+.editor-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.editor-scroll::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+.editor-scroll::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+
+/* ---------- Review Output ---------- */
+.review-output {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  background: var(--review-bg);
+  color: var(--review-text);
+}
+
+/* ---------- Footer Placement ---------- */
+.left {
+  display: flex;
+  flex-direction: column;
+}
+
+.review-btn {
+  margin-top: auto; /* pins the button at bottom */
+}
+
+/* Optional enhancement */
+button {
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+.prose pre {
+  background: #0d0d1a !important;
+  border: 1px solid #1e1e2f;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.prose code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 14px;
+}
+
+.prose strong {
+  color: #a5b4fc;
+}
+
+.prose ul {
+  margin-left: 1rem;
+  list-style: disc;
+}
+
+
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1024px) {
+  .container {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .left,
+  .right {
+    height: 50vh;
+  }
 }
