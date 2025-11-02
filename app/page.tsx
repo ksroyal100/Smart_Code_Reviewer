@@ -15,7 +15,6 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // 🧠 Handle Review
   const handleReview = async () => {
     if (!code.trim()) return;
     setLoading(true);
@@ -38,7 +37,7 @@ export default function App() {
       setCodeBlocks(blocks);
 
       const formatted = data.result
-        .replace(/```([\s\S]*?)```/g, (match:any, p1:any) => {
+        .replace(/```([\s\S]*?)```/g, (match: any, p1: any) => {
           return `<pre class='bg-[#0a0a0a]/70 p-3 rounded-lg border border-gray-800 text-sm text-green-400 overflow-auto mb-3'><code>${p1}</code></pre>`;
         })
         .replace(/^❌/gm, "<span class='text-red-400 font-bold'>❌</span>")
@@ -49,14 +48,12 @@ export default function App() {
 
       setReview(formatted);
     } catch (err: any) {
-      console.error("Error:", err);
       setError(err.message || "Internal Server Error");
     } finally {
       setLoading(false);
     }
   };
 
-  // 🧹 Clear All
   const handleClear = () => {
     setCode("");
     setReview("");
@@ -64,7 +61,6 @@ export default function App() {
     setCodeBlocks([]);
   };
 
-  // 📋 Copy
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     const btn = document.getElementById("copy-btn");
@@ -75,9 +71,9 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#0a0a0a] text-white overflow-hidden md:overflow-hidden overflow-y-auto md:overflow-y-hidden">
-      {/* Main Section */}
-      <div className="flex flex-col md:flex-row flex-1 md:overflow-hidden overflow-visible">
+    <div className="flex flex-col min-h-screen bg-[#0a0a0a] text-white">
+      {/* Main Content */}
+      <div className="flex flex-col md:flex-row flex-1 overflow-y-auto">
         {/* Left: Code Editor */}
         <div className="md:w-1/2 w-full p-4 border-b md:border-b-0 md:border-r border-gray-800 flex flex-col">
           <h2 className="text-blue-400 mb-2 font-semibold">Code Editor</h2>
@@ -102,7 +98,6 @@ export default function App() {
         {/* Right: AI Review */}
         <div className="md:w-1/2 w-full p-4 flex flex-col bg-[#0d0d1a]/70 backdrop-blur-lg border-t md:border-t-0 md:border-l border-gray-800/50">
           <h2 className="text-blue-400 mb-2 font-semibold">AI Review</h2>
-
           <div className="flex-1 overflow-auto rounded-lg bg-[#111]/70 border border-gray-800 p-4">
             {error ? (
               <span className="text-red-400">{error}</span>
@@ -116,7 +111,6 @@ export default function App() {
                   className="text-sm font-mono leading-relaxed text-[#cdd6f4] whitespace-pre-wrap"
                   dangerouslySetInnerHTML={{ __html: review }}
                 />
-
                 {codeBlocks.length > 0 && (
                   <div className="flex justify-end mt-3">
                     <button
@@ -143,7 +137,7 @@ export default function App() {
       </div>
 
       {/* Footer Buttons */}
-      <div className="bg-[#111]/50 border-t border-gray-800 p-3 flex justify-center gap-4 backdrop-blur-md md:sticky md:bottom-0">
+      <div className="bg-[#111]/70 border-t border-gray-800 p-3 flex justify-center gap-4 backdrop-blur-md sticky bottom-0">
         <button
           onClick={handleReview}
           disabled={loading || !code.trim()}
@@ -165,7 +159,6 @@ export default function App() {
         >
           Clear All
         </button>
-        
       </div>
     </div>
   );
