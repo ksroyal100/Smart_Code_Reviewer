@@ -38,7 +38,7 @@ export default function App() {
       setCodeBlocks(blocks);
 
       const formatted = data.result
-        .replace(/```([\s\S]*?)```/g, (_, p1) => {
+        .replace(/```([\s\S]*?)```/g, (match:any, p1:any) => {
           return `<pre class='bg-[#0a0a0a]/70 p-3 rounded-lg border border-gray-800 text-sm text-green-400 overflow-auto mb-3'><code>${p1}</code></pre>`;
         })
         .replace(/^❌/gm, "<span class='text-red-400 font-bold'>❌</span>")
@@ -151,7 +151,7 @@ export default function App() {
             ${
               loading
                 ? "border-gray-600 text-gray-400 cursor-not-allowed bg-transparent"
-                : "border-blue-400/40 bg-gradient-to-r from-transparent via-blue-500/10 to-cyan-500/10 hover:from-blue-500/20 hover:to-cyan-500/20 text-white hover:shadow-[0_0_15px_#00bfff55] active:scale-95"
+                : "border-blue-400/40 bg-linear-to-r from-transparent via-blue-500/10 to-cyan-500/10 hover:from-blue-500/20 hover:to-cyan-500/20 text-white hover:shadow-[0_0_15px_#00bfff55] active:scale-95"
             }`}
         >
           {loading ? "Analyzing..." : "Review Code"}
@@ -160,7 +160,7 @@ export default function App() {
         <button
           onClick={handleClear}
           className="px-6 py-2 rounded-lg font-medium tracking-wide transition-all duration-300 border border-red-400/40
-          bg-gradient-to-r from-transparent via-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20 
+          bg-linear-to-r from-transparent via-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20 
           text-white hover:shadow-[0_0_15px_#ff004455] active:scale-95"
         >
           Clear All
