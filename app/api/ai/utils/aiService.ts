@@ -1,35 +1,49 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 
-export const runtime = "edge"; // ⚡ Edge compatible
+export const runtime = "nodejs";
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_KEY!);
+const client = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY!,
+  baseURL: "https://api.groq.com/openai/v1",
+});
 
-const model = genAI.getGenerativeModel({
-  model: "gemini-2.0-flash",
-  systemInstruction: `
-AI System Instruction: Senior Code Reviewer (7+ Years of Experience)
+export default async function generateContent(prompt: string) {
+  try {
+    const response = await client.responses.create({
+      model: "openai/gpt-oss-20b",
+      input: [
+        {
+          role: "system",
+          content: `
+You are a Senior Code Reviewer with 7+ years of experience.
 
-You are a senior code reviewer focused on:
+Focus on:
 - ✅ Code Quality & Readability
 - 🧠 Best Practices & SOLID Principles
 - ⚙️ Efficiency & Performance
 - 🧩 Scalability & Maintainability
 - 🛡️ Security & Error Handling
 
-Your tone:
+Tone:
 Professional, encouraging, precise, and educational.
 
-Respond in a user-friendly Markdown format with sections like:
+Respond in Markdown with sections:
 ❌ Bad Code
 🔍 Issues
 ✅ Recommended Fix
 💡 Improvements
-  `,
-});
+          `,
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
 
-export default async function generateContent(prompt: string) {
-  const result = await model.generateContent(prompt);
-  const text = result.response.text();
-  console.log("[AI Review Output]:", text);
-  return text;
+    return response.output_text;
+  } catch (error: any) {
+    console.error("Groq API Error:", error?.message);
+    throw new Error("AI service unavailable");
+  }
 }
