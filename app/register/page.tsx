@@ -45,7 +45,6 @@ export default function RegisterPage() {
         (Date.now() + oneWeek).toString()
       );
 
-      // ✅ GO DIRECTLY TO MAIN (NO BACK)
       router.replace("/main");
     } catch (err: any) {
       setError(err.message || "Something went wrong");

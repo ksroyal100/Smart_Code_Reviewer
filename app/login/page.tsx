@@ -45,7 +45,6 @@ export default function LoginPage() {
         (Date.now() + oneWeek).toString()
       );
 
-      // ✅ GO TO MAIN (NO BACK)
       router.replace("/main");
     } catch (err: any) {
       setError(err.message || "Invalid credentials");

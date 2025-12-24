@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { isAuthenticated, Logout } from "@/lib/Auth";
+import { logout } from "@/lib/Auth";
+// import { logout } from "@/lib/Auth";
 
 export default function Header() {
   const router = useRouter();
@@ -32,7 +33,7 @@ export default function Header() {
       >
         <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center
           text-blue-400 font-bold shadow-[0_0_10px_#00bfff55]">
-          SB
+          🚀
         </div>
         <span className="font-semibold tracking-wide text-blue-300">
           SmartBuddy
@@ -59,7 +60,13 @@ export default function Header() {
               Profile
             </button>
             <button
-              onClick={() => Logout(router)}
+              disabled
+              className="w-full px-4 py-2 text-left text-gray-500 cursor-not-allowed"
+            >
+              Settings
+            </button>
+            <button
+              onClick={logout}
               className="w-full px-4 py-2 text-left text-red-400 hover:bg-red-500/10"
             >
               Logout
