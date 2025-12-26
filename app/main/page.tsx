@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Editor from "react-simple-code-editor";
 import Prism from "prismjs";
@@ -11,14 +11,15 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { isAuthenticated, scheduleAutoLogout } from "@/lib/Auth";
 
-export interface CodeHistoryItem {
+export interface ReviewSession {
   id: string;
+  title: string;
   code: string;
-  review: string;
-  createdAt: number;
+  reviewHtml: string;
+  createdAt: string;
 }
 
-export default function App() {
+export default function MainPage() {
   const router = useRouter();
 
   const [code, setCode] = useState(`function sum() {
@@ -28,31 +29,39 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ✅ HISTORY STATE (THIS WAS MISSING)
-  const [history, setHistory] = useState<CodeHistoryItem[]>([]);
+  const [history, setHistory] = useState<ReviewSession[]>([]);
 
-  // 🔐 AUTH GUARD
+  /* 🔐 AUTH GUARD */
   useEffect(() => {
     if (!isAuthenticated()) {
       router.replace("/");
     } else {
       scheduleAutoLogout();
     }
-  }, [router]);
+  }, []);
 
-  const handleHistorySelect = (item: CodeHistoryItem) => {
-    setCode(item.code);
-    setReview(item.review);
+  /* 📚 LOAD HISTORY ON PAGE LOAD */
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const fetchHistory = async () => {
+    const token = localStorage.getItem("token");
+    const res = await fetch("http://localhost:8080/api/reviews", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setHistory(data);
   };
 
+  /* 🧠 AI REVIEW */
   const handleReview = async () => {
     if (!code.trim()) return;
 
     const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-      return;
-    }
+    if (!token) return router.push("/login");
 
     setLoading(true);
     setError("");
@@ -69,53 +78,77 @@ export default function App() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed");
+      if (!res.ok) throw new Error(data.error);
 
-      setReview(data.result);
+      const formatted = data.result
+        .replace(/```([\s\S]*?)```/g, (_, p1) => {
+          return `<pre class='bg-[#0a0a0a]/70 p-3 rounded-lg border border-gray-800 text-green-400 mb-3'><code>${p1}</code></pre>`;
+        })
+        .replace(/\n/g, "<br/>");
 
-      // ✅ SAVE TO HISTORY
-      setHistory((prev) => [
-        {
-          id: crypto.randomUUID(),
-          code,
-          review: data.result,
-          createdAt: Date.now(),
+      setReview(formatted);
+
+      /* 💾 SAVE SESSION TO DB */
+      await fetch("http://localhost:8080/api/reviews", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        ...prev,
-      ]);
+        body: JSON.stringify({
+          code,
+          reviewHtml: formatted,
+        }),
+      });
+
+      fetchHistory(); // refresh sidebar
     } catch (err: any) {
-      setError(err.message || "Server error");
+      setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleClear = () => {
-    setCode("");
-    setReview("");
-    setError("");
+  /* 📂 CLICK HISTORY ITEM */
+  const handleHistorySelect = async (item: ReviewSession) => {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(
+      `http://localhost:8080/api/reviews/${item.id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const session = await res.json();
+    setCode(session.code);
+    setReview(session.reviewHtml);
   };
 
   return (
     <div className="h-screen flex bg-[#0a0a0a] text-white overflow-hidden">
-      {/* Sidebar */}
+
+      {/* SIDEBAR */}
       <Sidebar history={history} onSelect={handleHistorySelect} />
 
-      {/* Main Area */}
+      {/* MAIN */}
       <div className="flex-1 flex flex-col overflow-hidden">
+
         <Header />
 
-        {/* Content */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* Editor */}
-          <div className="w-1/2 p-4 border-r border-gray-800 flex flex-col">
+        <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+
+          {/* CODE EDITOR */}
+          <div className="md:w-1/2 w-full p-4 border-r border-gray-800 flex flex-col">
             <h2 className="text-blue-400 mb-2 font-semibold">Code Editor</h2>
-            <div className="flex-1 overflow-auto rounded bg-[#111]/70 p-2 border border-gray-800">
+            <div className="flex-1 bg-[#111] rounded-lg p-2 overflow-auto">
               <Editor
                 value={code}
                 onValueChange={setCode}
-                highlight={(c) =>
-                  Prism.highlight(c, Prism.languages.javascript, "javascript")
+                highlight={(code) =>
+                  Prism.highlight(code, Prism.languages.javascript, "javascript")
                 }
                 padding={10}
                 className="text-sm font-mono outline-none"
@@ -123,40 +156,35 @@ export default function App() {
             </div>
           </div>
 
-          {/* Review */}
-          <div className="w-1/2 p-4 flex flex-col bg-[#0d0d1a]/70">
+          {/* REVIEW */}
+          <div className="md:w-1/2 w-full p-4 flex flex-col">
             <h2 className="text-blue-400 mb-2 font-semibold">AI Review</h2>
-            <div className="flex-1 overflow-auto rounded bg-[#111]/70 border border-gray-800 p-4">
-              {error ? (
+            <div className="flex-1 bg-[#111] rounded-lg p-4 overflow-auto">
+              {loading ? (
+                <span className="text-gray-400">Analyzing...</span>
+              ) : error ? (
                 <span className="text-red-400">{error}</span>
-              ) : loading ? (
-                <span className="text-gray-400 italic">Analyzing...</span>
               ) : review ? (
-                <pre className="whitespace-pre-wrap text-sm">{review}</pre>
+                <div
+                  dangerouslySetInnerHTML={{ __html: review }}
+                  className="text-sm font-mono"
+                />
               ) : (
                 <span className="text-gray-600">
-                  // Your AI review will appear here
+                  // Review will appear here
                 </span>
               )}
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="border-t border-gray-800 p-3 flex justify-center gap-4 bg-[#111]/70">
+        {/* FOOTER */}
+        <div className="border-t border-gray-800 p-3 flex justify-center gap-4">
           <button
             onClick={handleReview}
-            disabled={loading}
-            className="px-6 py-2 border border-blue-400/40 rounded"
+            className="px-6 py-2 border border-blue-400/40 rounded-lg"
           >
-            {loading ? "Analyzing..." : "Review Code"}
-          </button>
-
-          <button
-            onClick={handleClear}
-            className="px-6 py-2 border border-red-400/40 rounded"
-          >
-            Clear
+            Review Code
           </button>
         </div>
       </div>
