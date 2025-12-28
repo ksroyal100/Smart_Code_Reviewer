@@ -6,10 +6,12 @@ import { ReviewSession } from "@/app/main/page";
 interface Props {
   history: ReviewSession[];
   onSelect: (item: ReviewSession) => void;
+  onDelete: (id: string) => void;
 }
 
-export default function Sidebar({ history, onSelect }: Props) {
+export default function Sidebar({ history, onSelect, onDelete }: Props) {
   const [open, setOpen] = useState(false);
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
   return (
     <aside
@@ -36,18 +38,52 @@ export default function Sidebar({ history, onSelect }: Props) {
             )}
 
             {history.map((item) => (
-              <button
+              <div
                 key={item.id}
-                onClick={() => onSelect(item)}
-                className="w-full text-left p-2 rounded-lg hover:bg-blue-500/10"
+                className="relative group flex items-center justify-between rounded-lg hover:bg-blue-500/10"
               >
-                <p className="text-xs text-blue-300 truncate">
-                  {item.title || "Code Review"}
-                </p>
-                <p className="text-[10px] text-gray-500">
-                  {new Date(item.createdAt).toLocaleString()}
-                </p>
-              </button>
+                {/* MAIN CLICK */}
+                <button
+                  onClick={() => onSelect(item)}
+                  className="flex-1 text-left p-2"
+                >
+                  <p className="text-xs text-blue-300 truncate">
+                    {item.title || "Code Review"}
+                  </p>
+                  <p className="text-[10px] text-gray-500">
+                    {new Date(item.createdAt).toLocaleString()}
+                  </p>
+                </button>
+
+                {/* THREE DOTS */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpenId(
+                      menuOpenId === item.id ? null : item.id
+                    );
+                  }}
+                  className="px-2 text-gray-400 hover:text-white"
+                >
+                  ⋮
+                </button>
+
+                {/* DROPDOWN */}
+                {menuOpenId === item.id && (
+                  <div className="absolute right-2 top-10 z-50 bg-[#111] border border-gray-800 rounded-md shadow-lg">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMenuOpenId(null);
+                        onDelete(item.id);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-xs text-red-400 hover:bg-red-500/10"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         )}

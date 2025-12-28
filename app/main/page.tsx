@@ -31,32 +31,49 @@ export default function MainPage() {
 
   const [history, setHistory] = useState<ReviewSession[]>([]);
 
-  /* 🔐 AUTH GUARD */
   useEffect(() => {
     if (!isAuthenticated()) {
       router.replace("/");
-    } else {
-      scheduleAutoLogout();
+      return;
     }
-  }, []);
 
-  /* 📚 LOAD HISTORY ON PAGE LOAD */
-  useEffect(() => {
+    scheduleAutoLogout();
     fetchHistory();
   }, []);
 
   const fetchHistory = async () => {
-    const token = localStorage.getItem("token");
-    const res = await fetch("http://localhost:8080/api/reviews", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const data = await res.json();
-    setHistory(data);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const res = await fetch("http://localhost:8080/api/reviews", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        console.error("Failed to load history", res.status);
+        setHistory([]); // safe fallback
+        return;
+      }
+
+      const data = await res.json();
+      setHistory(data);
+    } catch (err) {
+      console.error("History fetch error", err);
+      setHistory([]);
+    }
   };
 
-  /* 🧠 AI REVIEW */
+  /* CLEAR */
+  const handleClear = () => {
+    setCode("");
+    setReview("");
+    setError("");
+  };
+
+  /* AI REVIEW */
   const handleReview = async () => {
     if (!code.trim()) return;
 
@@ -81,65 +98,87 @@ export default function MainPage() {
       if (!res.ok) throw new Error(data.error);
 
       const formatted = data.result
-        .replace(/```([\s\S]*?)```/g, (_, p1) => {
+        .replace(/```([\s\S]*?)```/g, (_: any, p1: any) => {
           return `<pre class='bg-[#0a0a0a]/70 p-3 rounded-lg border border-gray-800 text-green-400 mb-3'><code>${p1}</code></pre>`;
         })
         .replace(/\n/g, "<br/>");
 
       setReview(formatted);
 
-      /* 💾 SAVE SESSION TO DB */
+      /* SAVE SESSION */
       await fetch("http://localhost:8080/api/reviews", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          code,
-          reviewHtml: formatted,
-        }),
+        body: JSON.stringify({ code, reviewHtml: formatted }),
       });
 
-      fetchHistory(); // refresh sidebar
+      fetchHistory();
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
+  const handleDelete = async (id: string) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-  /* 📂 CLICK HISTORY ITEM */
+    const confirmed = confirm("Delete this review?");
+    if (!confirmed) return;
+
+    await fetch(`http://localhost:8080/api/reviews/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    fetchHistory(); // refresh sidebar
+  };
+
   const handleHistorySelect = async (item: ReviewSession) => {
     const token = localStorage.getItem("token");
+    if (!token) return;
 
-    const res = await fetch(
-      `http://localhost:8080/api/reviews/${item.id}`,
-      {
+    try {
+      const res = await fetch(`http://localhost:8080/api/reviews/${item.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
-    );
+      });
 
-    const session = await res.json();
-    setCode(session.code);
-    setReview(session.reviewHtml);
+      if (!res.ok) {
+        throw new Error("Failed to load review session");
+      }
+
+      const session = await res.json();
+
+      // Load saved data (NO AI CALL)
+      setCode(session.code);
+      setReview(session.reviewHtml);
+    } catch (err) {
+      console.error(err);
+      alert("Unable to load saved review");
+    }
   };
 
   return (
     <div className="h-screen flex bg-[#0a0a0a] text-white overflow-hidden">
-
-      {/* SIDEBAR */}
-      <Sidebar history={history} onSelect={handleHistorySelect} />
+      {/* SIDEBAR (navigation only) */}
+      <Sidebar
+        history={history}
+        onSelect={handleHistorySelect}
+        onDelete={handleDelete}
+      />
 
       {/* MAIN */}
       <div className="flex-1 flex flex-col overflow-hidden">
-
         <Header />
 
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-
           {/* CODE EDITOR */}
           <div className="md:w-1/2 w-full p-4 border-r border-gray-800 flex flex-col">
             <h2 className="text-blue-400 mb-2 font-semibold">Code Editor</h2>
@@ -148,7 +187,11 @@ export default function MainPage() {
                 value={code}
                 onValueChange={setCode}
                 highlight={(code) =>
-                  Prism.highlight(code, Prism.languages.javascript, "javascript")
+                  Prism.highlight(
+                    code,
+                    Prism.languages.javascript,
+                    "javascript"
+                  )
                 }
                 padding={10}
                 className="text-sm font-mono outline-none"
@@ -179,12 +222,37 @@ export default function MainPage() {
         </div>
 
         {/* FOOTER */}
-        <div className="border-t border-gray-800 p-3 flex justify-center gap-4">
+        <div className="p-4 flex justify-center gap-4 border-t border-white/10">
+          {/* REVIEW BUTTON */}
           <button
             onClick={handleReview}
-            className="px-6 py-2 border border-blue-400/40 rounded-lg"
+            disabled={loading}
+            className={`
+      px-6 py-2 rounded-xl border transition-all duration-200
+      ${
+        loading
+          ? "bg-blue-500/10 text-blue-300 cursor-not-allowed opacity-70"
+          : "bg-blue-500/20 text-blue-300 border-blue-400/30 hover:bg-blue-500/30 hover:scale-105"
+      }
+    `}
           >
-            Review Code
+            {loading ? "Reviewing…" : "Review Code"}
+          </button>
+
+          {/* CLEAR BUTTON */}
+          <button
+            onClick={handleClear}
+            disabled={loading}
+            className={`
+      px-6 py-2 rounded-xl border transition-all duration-200
+      ${
+        loading
+          ? "bg-red-500/5 text-red-300/50 cursor-not-allowed"
+          : "bg-red-500/10 text-red-300 border-red-400/20 hover:bg-red-500/20 hover:scale-105"
+      }
+    `}
+          >
+            Clear All
           </button>
         </div>
       </div>

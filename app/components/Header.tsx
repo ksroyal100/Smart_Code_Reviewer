@@ -53,15 +53,10 @@ export default function Header() {
         {open && (
           <div className="absolute right-0 top-12 z-50 w-40 rounded-lg
             bg-[#0f0f1a] border border-gray-800 shadow-xl">
+            
             <button
-              disabled
-              className="w-full px-4 py-2 text-left text-gray-500 cursor-not-allowed"
-            >
-              Profile
-            </button>
-            <button
-              disabled
-              className="w-full px-4 py-2 text-left text-gray-500 cursor-not-allowed"
+              onClick={() =>router.push("/settings")}
+              className="w-full px-4 py-2 text-left text-gray-500 hover:bg-gray-800"
             >
               Settings
             </button>
