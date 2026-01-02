@@ -99,7 +99,11 @@ export default function MainPage() {
 
       const formatted = data.result
         .replace(/```([\s\S]*?)```/g, (_: any, p1: any) => {
-          return `<pre class='bg-[#0a0a0a]/70 p-3 rounded-lg border border-gray-800 text-green-400 mb-3'><code>${p1}</code></pre>`;
+          return `
+      <pre class="bg-[#0a0a0a]/70 p-3 rounded-lg border border-gray-800 text-green-400 mb-3 overflow-x-auto max-w-full">
+        <code class="whitespace-pre">${p1}</code>
+      </pre>
+    `;
         })
         .replace(/\n/g, "<br/>");
 
@@ -176,7 +180,7 @@ export default function MainPage() {
 
       {/* MAIN */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+        <Header setCode={setCode} setReview={setReview} setError={setError}/>
 
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
           {/* CODE EDITOR */}
@@ -202,7 +206,7 @@ export default function MainPage() {
           {/* REVIEW */}
           <div className="md:w-1/2 w-full p-4 flex flex-col">
             <h2 className="text-blue-400 mb-2 font-semibold">AI Review</h2>
-            <div className="flex-1 bg-[#111] rounded-lg p-4 overflow-auto">
+            <div className="flex-1 bg-[#111] rounded-lg p-4 overflow-auto max-w-full">
               {loading ? (
                 <span className="text-gray-400">Analyzing...</span>
               ) : error ? (

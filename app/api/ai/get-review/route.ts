@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getReview } from "../utils/aiController";
 
-export const runtime = "edge"; // ⚡ Edge-optimized route
+export const runtime = "edge";
 
 export async function POST(req: Request) {
   try {

@@ -3,14 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { logout } from "@/lib/Auth";
-// import { logout } from "@/lib/Auth";
 
-export default function Header() {
+export default function Header({setCode, setReview, setError}: {setCode: (code: string) => void, setReview: (review: string) => void, setError: (error: string) => void}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [firstLetter, setFirstLetter] = useState("U");
 
-  // ✅ SAFE localStorage access
+  //Safe localStorage access
   useEffect(() => {
     const username = localStorage.getItem("username");
     if (username) {
@@ -19,7 +18,10 @@ export default function Header() {
   }, []);
 
   const handleLogoClick = () => {
-    router.push("/main"); // ALWAYS main when logged in
+    router.push("/main");
+    setCode("");
+    setReview("");
+    setError("");
   };
 
   return (
@@ -54,15 +56,15 @@ export default function Header() {
           <div className="absolute right-0 top-12 z-50 w-40 rounded-lg
             bg-[#0f0f1a] border border-gray-800 shadow-xl">
             
-            <button
+            {/* <button
               onClick={() =>router.push("/settings")}
               className="w-full px-4 py-2 text-left text-gray-500 hover:bg-gray-800"
             >
               Settings
-            </button>
+            </button> */}
             <button
               onClick={logout}
-              className="w-full px-4 py-2 text-left text-red-400 hover:bg-red-500/10"
+              className="w-full px-4 py-2 text-left text-red-400 hover:bg-red-500/10 cursor-pointer"
             >
               Logout
             </button>

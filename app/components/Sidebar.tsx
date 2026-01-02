@@ -63,7 +63,7 @@ export default function Sidebar({ history, onSelect, onDelete }: Props) {
                       menuOpenId === item.id ? null : item.id
                     );
                   }}
-                  className="px-2 text-gray-400 hover:text-white"
+                  className="px-2 text-gray-400 hover:text-white cursor-pointer"
                 >
                   ⋮
                 </button>
@@ -77,7 +77,7 @@ export default function Sidebar({ history, onSelect, onDelete }: Props) {
                         setMenuOpenId(null);
                         onDelete(item.id);
                       }}
-                      className="block w-full text-left px-4 py-2 text-xs text-red-400 hover:bg-red-500/10"
+                      className="block w-full text-left px-4 py-2 text-xs text-red-400 cursor-pointer hover:bg-red-500/10"
                     >
                       Delete
                     </button>
