@@ -27,14 +27,14 @@ export default function WelcomePage() {
         <div className="flex gap-4 justify-center">
           <button
             onClick={() => router.push("/login")}
-            className="px-6 py-2 rounded-lg border border-blue-400/40 bg-blue-500/10"
+            className="px-6 py-2 rounded-lg border border-blue-400/40 bg-blue-500/10  hover:bg-transparent cursor-pointer"
           >
             Login
           </button>
 
           <button
             onClick={() => router.push("/register")}
-            className="px-6 py-2 rounded-lg border border-green-400/40 bg-green-500/10"
+            className="px-6 py-2 rounded-lg border border-green-400/40 bg-green-500/10 hover:bg-transparent cursor-pointer"
           >
             Register
           </button>

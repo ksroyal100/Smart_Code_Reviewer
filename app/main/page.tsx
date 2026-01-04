@@ -236,7 +236,7 @@ export default function MainPage() {
       ${
         loading
           ? "bg-blue-500/10 text-blue-300 cursor-not-allowed opacity-70"
-          : "bg-blue-500/20 text-blue-300 border-blue-400/30 hover:bg-blue-500/30 hover:scale-105"
+          : "bg-blue-500/20 text-blue-300 border-blue-400/30 hover:bg-transparent cursor-pointer hover:scale-105"
       }
     `}
           >
@@ -252,7 +252,7 @@ export default function MainPage() {
       ${
         loading
           ? "bg-red-500/5 text-red-300/50 cursor-not-allowed"
-          : "bg-red-500/10 text-red-300 border-red-400/20 hover:bg-red-500/20 hover:scale-105"
+          : "bg-red-500/10 text-red-300 border-red-400/20 hover:bg-transparent cursor-pointer hover:scale-105"
       }
     `}
           >
