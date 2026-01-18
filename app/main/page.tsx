@@ -47,8 +47,10 @@ export default function MainPage() {
       if (!token) return;
 
       const res = await fetch("http://localhost:8080/api/reviews", {
+        method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       });
 
@@ -180,7 +182,7 @@ export default function MainPage() {
 
       {/* MAIN */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header setCode={setCode} setReview={setReview} setError={setError}/>
+        <Header setCode={setCode} setReview={setReview} setError={setError} />
 
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
           {/* CODE EDITOR */}
