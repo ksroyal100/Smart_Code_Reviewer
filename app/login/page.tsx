@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/Api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,42 +17,80 @@ export default function LoginPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleLogin = async (e: any) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+  // const handleLogin = async (e: any) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   setError("");
 
-    try {
-      const res = await fetch("http://localhost:8080/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+  //   try {
+  //     const res = await fetch("http://localhost:8080/auth/login", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(form),
+  //     });
 
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Login failed");
-      }
+  //     if (!res.ok) {
+  //       const text = await res.text();
+  //       throw new Error(text || "Login failed");
+  //     }
 
-      const data = await res.json();
+  //     const data = await res.json();
 
-      // ✅ STORE TOKEN FOR 1 WEEK
-      const oneWeek = 7 * 24 * 60 * 60 * 1000;
+  //     // ✅ STORE TOKEN FOR 1 WEEK
+  //     const oneWeek = 7 * 24 * 60 * 60 * 1000;
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("username", data.username);
-      localStorage.setItem(
-        "token_expiry",
-        (Date.now() + oneWeek).toString()
-      );
+  //     localStorage.setItem("token", data.token);
+  //     localStorage.setItem("username", data.username);
+  //     localStorage.setItem(
+  //       "token_expiry",
+  //       (Date.now() + oneWeek).toString()
+  //     );
 
-      router.replace("/main");
-    } catch (err: any) {
-      setError(err.message || "Invalid credentials");
-    } finally {
-      setLoading(false);
+  //     router.replace("/main");
+  //   } catch (err: any) {
+  //     setError(err.message || "Invalid credentials");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
+const handleLogin = async (e: any) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || "Login failed");
     }
-  };
+
+    const data = await res.json();
+
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("username", data.username);
+    localStorage.setItem(
+      "token_expiry",
+      (Date.now() + oneWeek).toString()
+    );
+
+    router.replace("/main");
+  } catch (err: any) {
+    setError(err.message || "Invalid credentials");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-white">

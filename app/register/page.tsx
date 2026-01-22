@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/Api";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -15,43 +16,79 @@ export default function RegisterPage() {
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+  // const handleRegister = async (e: any) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   setError("");
 
-  const handleRegister = async (e: any) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+  //   try {
+  //     const res = await fetch("http://localhost:8080/auth/register", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(form),
+  //     });
 
-    try {
-      const res = await fetch("http://localhost:8080/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+  //     if (!res.ok) {
+  //       const text = await res.text();
+  //       throw new Error(text || "Registration failed");
+  //     }
 
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Registration failed");
-      }
+  //     const data = await res.json();
 
-      const data = await res.json();
+  //     // ✅ STORE TOKEN FOR 1 WEEK
+  //     const oneWeek = 7 * 24 * 60 * 60 * 1000;
 
-      // ✅ STORE TOKEN FOR 1 WEEK
-      const oneWeek = 7 * 24 * 60 * 60 * 1000;
+  //     localStorage.setItem("token", data.token);
+  //     localStorage.setItem("username", data.username);
+  //     localStorage.setItem(
+  //       "token_expiry",
+  //       (Date.now() + oneWeek).toString()
+  //     );
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("username", data.username);
-      localStorage.setItem(
-        "token_expiry",
-        (Date.now() + oneWeek).toString()
-      );
+  //     router.replace("/main");
+  //   } catch (err: any) {
+  //     setError(err.message || "Something went wrong");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-      router.replace("/main");
-    } catch (err: any) {
-      setError(err.message || "Something went wrong");
-    } finally {
-      setLoading(false);
+const handleRegister = async (e: any) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || "Registration failed");
     }
-  };
+
+    const data = await res.json();
+
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("username", data.username);
+    localStorage.setItem(
+      "token_expiry",
+      (Date.now() + oneWeek).toString()
+    );
+
+    router.replace("/main");
+  } catch (err: any) {
+    setError(err.message || "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-white">

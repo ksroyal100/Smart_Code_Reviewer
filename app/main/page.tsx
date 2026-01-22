@@ -10,6 +10,8 @@ import "prismjs/themes/prism-tomorrow.css";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { isAuthenticated, scheduleAutoLogout } from "@/lib/Auth";
+import { API_BASE_URL } from "@/lib/Api";
+
 
 export interface ReviewSession {
   id: string;
@@ -46,7 +48,7 @@ export default function MainPage() {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const res = await fetch("http://localhost:8080/api/reviews", {
+      const res = await fetch(`${API_BASE_URL}/api/reviews`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -87,7 +89,7 @@ export default function MainPage() {
     setReview("");
 
     try {
-      const res = await fetch("/api/ai/get-review", {
+      const res = await fetch(`${API_BASE_URL}/api/reviews`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -112,7 +114,7 @@ export default function MainPage() {
       setReview(formatted);
 
       /* SAVE SESSION */
-      await fetch("http://localhost:8080/api/reviews", {
+      await fetch(`${API_BASE_URL}/api/reviews`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -135,7 +137,7 @@ export default function MainPage() {
     const confirmed = confirm("Delete this review?");
     if (!confirmed) return;
 
-    await fetch(`http://localhost:8080/api/reviews/${id}`, {
+    await fetch(`${API_BASE_URL}/api/reviews/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -150,7 +152,7 @@ export default function MainPage() {
     if (!token) return;
 
     try {
-      const res = await fetch(`http://localhost:8080/api/reviews/${item.id}`, {
+      const res = await fetch(`${API_BASE_URL}/${item.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
