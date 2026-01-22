@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Header from "@/app/components/Header";
 import { isAuthenticated, scheduleAutoLogout } from "@/lib/Auth";
+import { API_BASE_URL } from "@/lib/Api";
 
 export default function ReviewSessionPage() {
   const { id } = useParams();
@@ -28,7 +29,7 @@ export default function ReviewSessionPage() {
       const token = localStorage.getItem("token");
 
       const res = await fetch(
-        `http://localhost:8080/api/reviews/${id}`,
+        `${API_BASE_URL}/api/reviews/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -52,7 +53,7 @@ export default function ReviewSessionPage() {
 
   return (
     <div className="h-screen bg-[#0a0a0a] text-white flex flex-col">
-      <Header />
+              <Header setCode={setCode} setReview={setReview} setError={setError} />
 
       <div className="flex flex-1 overflow-hidden">
         {/* CODE */}
