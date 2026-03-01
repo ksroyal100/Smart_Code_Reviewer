@@ -79,57 +79,69 @@ export default function MainPage() {
 
   /* AI REVIEW */
   const handleReview = async () => {
-    if (!code.trim()) return;
+  if (!code.trim()) return;
 
-    const token = localStorage.getItem("token");
-    if (!token) return router.push("/login");
+  setLoading(true);
+  setError("");
+  setReview("");
 
-    setLoading(true);
-    setError("");
-    setReview("");
+  try {
+    /* =====================
+       1 AI REVIEW (Next.js)
+       ===================== */
+    const aiRes = await fetch("/api/ai/get-review", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ code }),
+    });
 
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/reviews`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ code }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      const formatted = data.result
-        .replace(/```([\s\S]*?)```/g, (_: any, p1: any) => {
-          return `
-      <pre class="bg-[#0a0a0a]/70 p-3 rounded-lg border border-gray-800 text-green-400 mb-3 overflow-x-auto max-w-full">
-        <code class="whitespace-pre">${p1}</code>
-      </pre>
-    `;
-        })
-        .replace(/\n/g, "<br/>");
-
-      setReview(formatted);
-
-      /* SAVE SESSION */
-      await fetch(`${API_BASE_URL}/api/reviews`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ code, reviewHtml: formatted }),
-      });
-
-      fetchHistory();
-    } catch (err: any) {
-      setError(err.message || "Something went wrong");
-    } finally {
-      setLoading(false);
+    if (!aiRes.ok) {
+      throw new Error("AI review request failed");
     }
-  };
+
+    const aiData = await aiRes.json();
+
+    if (!aiData?.result) {
+      throw new Error("AI response is invalid");
+    }
+
+    const formatted = aiData.result
+      .replace(/```([\s\S]*?)```/g, (_: any, p1: any) => `
+        <pre class="bg-[#0a0a0a]/70 p-3 rounded-lg border border-gray-800 text-green-400 mb-3 overflow-x-auto max-w-full">
+          <code class="whitespace-pre">${p1}</code>
+        </pre>
+      `)
+      .replace(/\n/g, "<br/>");
+
+    setReview(formatted);
+
+    /* =====================
+       2 SAVE SESSION (Backend)
+       ===================== */
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    await fetch(`${API_BASE_URL}/api/reviews`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        code,
+        reviewHtml: formatted,
+      }),
+    });
+
+    fetchHistory();
+  } catch (err: any) {
+    setError(err.message || "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
   const handleDelete = async (id: string) => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -152,7 +164,7 @@ export default function MainPage() {
     if (!token) return;
 
     try {
-      const res = await fetch(`${API_BASE_URL}/${item.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/reviews/${item.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
